@@ -1,5 +1,6 @@
 package me.chosi.restapi.events;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -18,12 +19,16 @@ public class EventController {
 
     private final EventRepositoy eventRepositoy;
 
-    public EventController(EventRepositoy eventRepositoy) {
+    private final ModelMapper modelMapper;
+
+    public EventController(EventRepositoy eventRepositoy, ModelMapper modelMapper) {
         this.eventRepositoy = eventRepositoy;
+        this.modelMapper = modelMapper;
     }
 
     @PostMapping
-    public ResponseEntity createEvent(@RequestBody Event event) {
+    public ResponseEntity createEvent(@RequestBody EventDto eventDto) {
+        Event event = modelMapper.map(eventDto, Event.class);
         Event newEvent = this.eventRepositoy.save(event);
         URI createUri = linkTo(EventController.class).slash(newEvent.getId()).toUri();
         return ResponseEntity.created(createUri).body(event);
