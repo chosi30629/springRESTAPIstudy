@@ -3,6 +3,7 @@ package me.chosi.restapi.configs;
 import me.chosi.restapi.accounts.Account;
 import me.chosi.restapi.accounts.AccountRole;
 import me.chosi.restapi.accounts.AccountService;
+import me.chosi.restapi.common.AppProperties;
 import me.chosi.restapi.common.BaseControllerTest;
 import me.chosi.restapi.common.TestDescription;
 import org.junit.Test;
@@ -22,30 +23,16 @@ public class AuthServerConfigTest extends BaseControllerTest {
     @Autowired
     AccountService accountService;
 
+    @Autowired
+    AppProperties appProperties;
+
     @Test
     @TestDescription("인증 토큰을 발급 받는 테스트")
     public void getAuthToken() throws Exception {
-        // Given
-        Set<AccountRole> roles = new HashSet<>();
-        roles.add(AccountRole.ADMIN);
-        roles.add(AccountRole.USER);
-
-        String username = "seongil@email.com";
-        String password = "seongil";
-        Account seongil = Account.builder()
-                .email(username)
-                .password(password)
-                .roles(roles)
-                .build();
-        this.accountService.saveAccount(seongil);
-
-        String clientId = "myApp";
-        String clientSecret = "pass";
-
         this.mockMvc.perform(post("/oauth/token")
-                .with(httpBasic(clientId, clientSecret))
-                .param("username", username)
-                .param("password", password)
+                .with(httpBasic(appProperties.getClientId(), appProperties.getClientSecret()))
+                .param("username", appProperties.getUserUsername())
+                .param("password", appProperties.getUserPassword())
                 .param("grant_type", "password"))
                 .andDo(print())
                 .andExpect(status().isOk())

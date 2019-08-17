@@ -1,8 +1,10 @@
 package me.chosi.restapi.configs;
 
 import me.chosi.restapi.accounts.Account;
+import me.chosi.restapi.accounts.AccountRepository;
 import me.chosi.restapi.accounts.AccountRole;
 import me.chosi.restapi.accounts.AccountService;
+import me.chosi.restapi.common.AppProperties;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -28,28 +30,48 @@ public class AppConfig {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
-//    @Bean
-//    public ApplicationRunner applicationRunner() {
-//        return new ApplicationRunner() {
-//            @Autowired
-//            AccountService accountService;
-//
-//            @Override
-//            public void run(ApplicationArguments args) throws Exception {
-//                Set<AccountRole> roles = new HashSet<>();
-//                roles.add(AccountRole.ADMIN);
-//                roles.add(AccountRole.USER);
-//
-//                Account seongil = Account.builder()
-//                        .email("seongil@email.com")
-//                        .password("seongil")
-//                        .roles(roles)
-//                        .build();
-//                accountService.saveAccount(seongil);
-//            }
-//        };
-//
-//
-//    }
+    @Bean
+    public ApplicationRunner applicationRunner() {
+        return new ApplicationRunner() {
+            @Autowired
+            AccountService accountService;
+
+            @Autowired
+            AccountRepository accountRepository;
+
+            @Autowired
+            AppProperties appProperties;
+
+            @Override
+            public void run(ApplicationArguments args) throws Exception {
+                this.accountRepository.deleteAll();
+
+                Set<AccountRole> adminRoles = new HashSet<>();
+                adminRoles.add(AccountRole.ADMIN);
+                adminRoles.add(AccountRole.USER);
+
+                Set<AccountRole> userRoles = new HashSet<>();
+                userRoles.add(AccountRole.ADMIN);
+                userRoles.add(AccountRole.USER);
+
+                Account admin = Account.builder()
+                        .email(appProperties.getAdminUsername())
+                        .password(appProperties.getAdminPassword())
+                        .roles(adminRoles)
+                        .build();
+                accountService.saveAccount(admin);
+
+
+                Account user = Account.builder()
+                        .email(appProperties.getUserUsername())
+                        .password(appProperties.getUserPassword())
+                        .roles(userRoles)
+                        .build();
+                accountService.saveAccount(user);
+            }
+        };
+
+
+    }
 
 }
